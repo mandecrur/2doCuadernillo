@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Práctica Cuadernillo II - 100 ejercicios</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#f3f6fa;color:#17202a}
+.container{max-width:760px;margin:auto;padding:18px}
+header{background:#17365d;color:white;border-radius:16px;padding:20px;margin-bottom:14px}
+h1{font-size:23px;margin:0 0 6px} .sub{opacity:.9;font-size:14px}
+.stats{display:flex;gap:10px;margin:12px 0;position:sticky;top:0;z-index:5}
+.stat{flex:1;background:white;border-radius:12px;padding:10px;text-align:center;box-shadow:0 2px 8px #0001;font-weight:bold}
+#correct{color:#16803a} #wrong{color:#c62828}
+.progress{height:9px;background:#dce3ea;border-radius:20px;overflow:hidden;margin:10px 0 16px}
+#bar{height:100%;width:0%;background:#2e75b6;transition:.25s}
+.card{background:white;border-radius:18px;padding:22px;box-shadow:0 3px 14px #0001}
+.tag{display:inline-block;background:#e8f1fb;color:#174a7c;padding:6px 10px;border-radius:20px;font-size:13px;font-weight:bold;margin-bottom:14px}
+.num{font-size:13px;color:#667085;margin-bottom:8px}
+.question{font-size:21px;font-weight:700;line-height:1.4;margin-bottom:20px}
+.option{display:block;width:100%;text-align:left;border:2px solid #d8dee6;background:#fff;border-radius:12px;padding:14px;margin:10px 0;font-size:16px;cursor:pointer;transition:.15s;touch-action:manipulation}
+.option:hover{border-color:#6c9fd1;background:#f7fbff}
+.option.correct{border-color:#2e8b57;background:#eaf8ef}
+.option.incorrect{border-color:#d64545;background:#fff0f0}
+.option:disabled{cursor:default}
+.feedback{margin-top:15px;padding:13px;border-radius:12px;display:none;line-height:1.45}
+.feedback.ok{display:block;background:#eaf8ef;color:#176b35}
+.feedback.no{display:block;background:#fff0f0;color:#9b2226}
+.next{width:100%;margin-top:16px;border:0;border-radius:12px;padding:14px;background:#17365d;color:white;font-size:16px;font-weight:bold;cursor:pointer;display:none}
+.final{display:none;text-align:center}
+.final h2{font-size:28px}
+.reset{border:0;background:#17365d;color:white;border-radius:12px;padding:13px 20px;font-weight:bold;cursor:pointer}
+@media(max-width:520px){.container{padding:10px}header{padding:16px}h1{font-size:20px}.card{padding:17px}.question{font-size:19px}.option{font-size:15px;padding:13px}}
+</style>
+</head>
+<body>
+<div class="container">
+<header>
+<h1>Práctica interactiva — Cuadernillo II</h1>
+<div class="sub">100 ejercicios basados en los contenidos del cuadernillo. Selecciona una alternativa y la respuesta se comprobará automáticamente.</div>
+</header>
+<div class="stats">
+<div class="stat">Correctas<br><span id="correct">0</span></div>
+<div class="stat">Incorrectas<br><span id="wrong">0</span></div>
+<div class="stat">Pregunta<br><span id="current">1/100</span></div>
+</div>
+<div class="progress"><div id="bar"></div></div>
+
+<div id="quiz" class="card">
+<div id="tag" class="tag"></div>
+<div id="qnum" class="num"></div>
+<div id="question" class="question"></div>
+<div id="options"></div>
+<div id="feedback" class="feedback"></div>
+<button id="next" class="next" onclick="nextQuestion()">Siguiente →</button>
+</div>
+
+<div id="final" class="card final">
+<h2>¡Práctica terminada!</h2>
+<p id="result"></p>
+<button class="reset" onclick="restart()">Reiniciar práctica</button>
+</div>
+</div>
+
+<script>
+const questions = [{"t": "Adjetivos de forma", "q": "Elige la frase correcta.", "o": ["a box rectangular small", "a rectangular small box", "a small rectangular box"], "a": 2, "e": "El cuadernillo presenta el orden: tamaño + forma + sustantivo."}, {"t": "Imperativos", "q": "___ down and be quiet.", "o": ["Sit", "Sits", "Sitting"], "a": 0, "e": "Sit down es un imperativo."}, {"t": "Presente simple afirmativo", "q": "They ___ English.", "o": ["studies", "studying", "study"], "a": 2, "e": "Con they se usa la forma base: study."}, {"t": "Presente simple interrogativo", "q": "Does she ___ chocolate?", "o": ["like", "likes", "liking"], "a": 0, "e": "Después de does se usa like."}, {"t": "Conjunciones", "q": "Do you want tea ___ coffee? You can choose one.", "o": ["and", "or", "but"], "a": 1, "e": "Or se usa cuando se ofrece una opción entre dos alternativas."}, {"t": "Preguntas simples", "q": "___ is your birthday?", "o": ["When", "Who", "What"], "a": 0, "e": "When se usa para preguntar por el tiempo o una fecha."}, {"t": "Presente simple negativo", "q": "They ___ watch TV in the morning.", "o": ["aren't", "doesn't", "don't"], "a": 2, "e": "Con they se usa don't."}, {"t": "Imperativos", "q": "___ the door, please.", "o": ["Close", "Closing", "Closes"], "a": 0, "e": "Close es la forma base del verbo."}, {"t": "Adjetivos de forma", "q": "Which word means “ovalado”?", "o": ["Curved", "Oval", "Pointed"], "a": 1, "e": "Oval significa ovalado."}, {"t": "Presente simple interrogativo", "q": "___ you study English?", "o": ["Are", "Does", "Do"], "a": 2, "e": "Con you se usa Do + sujeto + verbo base."}, {"t": "Presente simple interrogativo", "q": "Does she ___ coffee?", "o": ["drinking", "drink", "drinks"], "a": 1, "e": "Después de does se usa el verbo base."}, {"t": "Presente simple negativo", "q": "I ___ eat meat.", "o": ["not", "doesn't", "don't"], "a": 2, "e": "Con I se usa don't + verbo base."}, {"t": "Verb to have", "q": "He ___ a pencil.", "o": ["has", "have", "is"], "a": 0, "e": "Con he se usa has."}, {"t": "Adverbios de frecuencia", "q": "She ___ eats vegetables. She hates them!", "o": ["often", "always", "never"], "a": 2, "e": "Never significa nunca."}, {"t": "Imperativos", "q": "___ your name on the line.", "o": ["Writing", "Write", "Writes"], "a": 1, "e": "El imperativo usa el verbo en forma base, sin sujeto."}, {"t": "Presente simple negativo", "q": "He doesn't ___ to school.", "o": ["going", "goes", "go"], "a": 2, "e": "Después de doesn't se usa go, no goes."}, {"t": "Verb to have", "q": "He ___ have a brother.", "o": ["doesn't", "don't", "isn't"], "a": 0, "e": "Con he se usa doesn't + have."}, {"t": "Adjetivos de forma", "q": "Which word means “triangular”?", "o": ["Straight", "Triangular", "Flat"], "a": 1, "e": "Triangular significa triangular."}, {"t": "Adjetivos de forma", "q": "Elige la frase correcta.", "o": ["a square window", "a window square", "square a window"], "a": 0, "e": "El adjetivo de forma va antes del sustantivo."}, {"t": "Preposiciones de lugar", "q": "The pen is ___ the desk. It is touching the surface of the desk.", "o": ["above", "under", "on"], "a": 2, "e": "On se usa cuando algo está sobre una superficie y la toca."}, {"t": "Presente simple afirmativo", "q": "She ___ a book every night.", "o": ["reads", "read", "reading"], "a": 0, "e": "Con she se añade -s: reads."}, {"t": "Presente simple afirmativo", "q": "He ___ to school.", "o": ["go", "going", "goes"], "a": 2, "e": "Con he, el verbo go cambia a goes."}, {"t": "Can / Can't", "q": "Elige la oración correcta para expresar incapacidad.", "o": ["He can't dance.", "He can dance.", "He doesn't can dance."], "a": 0, "e": "Can't indica que alguien no puede hacer algo."}, {"t": "Preposiciones de tiempo", "q": "My birthday is ___ Monday.", "o": ["in", "on", "at"], "a": 1, "e": "On se usa con días."}, {"t": "Verb to have", "q": "She ___ a pet.", "o": ["has", "haves", "have"], "a": 0, "e": "Con she se usa has."}, {"t": "Preposiciones de tiempo", "q": "We go to the beach ___ August.", "o": ["at", "in", "on"], "a": 1, "e": "In se usa con meses."}, {"t": "Preposiciones de lugar", "q": "The dog is ___ the door. It is beside the door.", "o": ["next to", "below", "between"], "a": 0, "e": "Next to significa al lado de."}, {"t": "Presente simple interrogativo", "q": "___ he play the guitar?", "o": ["Do", "Does", "Is"], "a": 1, "e": "Con he se usa Does."}, {"t": "Presente simple interrogativo", "q": "___ they watch TV at night?", "o": ["Do", "Are", "Does"], "a": 0, "e": "Con they se usa Do."}, {"t": "Pronombres posesivos", "q": "___ dog is friendly.", "o": ["She", "Her", "Hers"], "a": 1, "e": "Her significa su/de ella y va antes del sustantivo."}, {"t": "Presente simple negativo", "q": "He ___ study on Sundays.", "o": ["isn't", "don't", "doesn't"], "a": 2, "e": "Con he se usa doesn't + verbo base."}, {"t": "Preposiciones de lugar", "q": "The cat is ___ the table. It is touching the top surface.", "o": ["behind", "on", "between"], "a": 1, "e": "On se usa cuando algo está sobre una superficie."}, {"t": "Preposiciones de lugar", "q": "The teacher is ___ the board. The teacher is standing before it.", "o": ["between", "under", "in front of"], "a": 2, "e": "In front of significa delante de."}, {"t": "Repaso", "q": "Elige la oración correcta.", "o": ["I can swim, but I can't run fast.", "I can swims, but I can't runs fast.", "I can to swim, but I don't can run fast."], "a": 0, "e": "Después de can/can't se usa el verbo base; but expresa contraste."}, {"t": "Verb to have", "q": "___ you have a ball?", "o": ["Are", "Does", "Do"], "a": 2, "e": "Con you, la pregunta usa Do you have...?"}, {"t": "Adjetivos de tamaño", "q": "Elige la oración correcta.", "o": ["Tall a boy.", "A tall boy.", "A boy tall."], "a": 1, "e": "El adjetivo de tamaño va antes del sustantivo."}, {"t": "Adjetivos de tamaño", "q": "Which adjective means “enorme”?", "o": ["Tiny", "Short", "Huge"], "a": 2, "e": "Huge significa enorme."}, {"t": "Presente simple negativo", "q": "She doesn't ___ coffee.", "o": ["drink", "drinks", "drinking"], "a": 0, "e": "Después de doesn't, el verbo permanece en forma base."}, {"t": "Imperativos", "q": "___ be late!", "o": ["Doesn't", "Isn't", "Don't"], "a": 2, "e": "Don't + verbo base forma el imperativo negativo."}, {"t": "Preguntas simples", "q": "___ is your name?", "o": ["When", "What", "Where"], "a": 1, "e": "What se usa para preguntar qué/cuál."}, {"t": "Adjetivos calificativos", "q": "Which word means “enojado”?", "o": ["Friendly", "Nice", "Angry"], "a": 2, "e": "Angry significa enojado."}, {"t": "Presente simple afirmativo", "q": "I ___ breakfast at 7.", "o": ["eat", "eating", "eats"], "a": 0, "e": "Con I se usa el verbo en forma base: eat."}, {"t": "Preposiciones de tiempo", "q": "The class starts ___ 8:00.", "o": ["on", "in", "at"], "a": 2, "e": "At se usa con horas."}, {"t": "Adjetivos de tamaño", "q": "Elige la frase correcta.", "o": ["long a pencil", "a long pencil", "a pencil long"], "a": 1, "e": "Long es un adjetivo de tamaño y se coloca antes del sustantivo."}, {"t": "Preposiciones de tiempo", "q": "She studies ___ the morning.", "o": ["at", "on", "in"], "a": 2, "e": "In se usa con momentos del día como in the morning."}, {"t": "Adverbios de frecuencia", "q": "They ___ watch TV, about three days a week.", "o": ["always", "sometimes", "never"], "a": 1, "e": "Sometimes significa a veces."}, {"t": "Conjunciones", "q": "He is tall ___ short.", "o": ["but", "because", "or"], "a": 0, "e": "But expresa contraste entre dos ideas."}, {"t": "Adjetivos de tamaño", "q": "Which word means “pequeño”?", "o": ["Wide", "Huge", "Small"], "a": 2, "e": "Small significa pequeño."}, {"t": "Presente simple negativo", "q": "We ___ live in Lima.", "o": ["doesn't", "don't", "isn't"], "a": 1, "e": "Con we se usa don't."}, {"t": "Conjunciones", "q": "We can go to the park ___ the beach. We must choose one place.", "o": ["and", "because", "or"], "a": 2, "e": "Or presenta una opción entre dos lugares."}, {"t": "Can / Can't", "q": "They can ___ English.", "o": ["speaks", "speak", "speaking"], "a": 1, "e": "Después de can se usa el verbo base."}, {"t": "Can / Can't", "q": "Yes, she ___.", "o": ["is", "does", "can"], "a": 2, "e": "La respuesta corta afirmativa es Yes, she can."}, {"t": "Can / Can't", "q": "I ___ swim. I know how to swim.", "o": ["can", "can’t", "do"], "a": 0, "e": "Can expresa habilidad."}, {"t": "Pronombres posesivos", "q": "The cat eats ___ food.", "o": ["it", "it's", "its"], "a": 2, "e": "Its indica posesión para animales o cosas."}, {"t": "Conjunciones", "q": "I'm sad ___ my dog is sick.", "o": ["but", "because", "or"], "a": 1, "e": "Because da la razón de estar triste."}, {"t": "Conjunciones", "q": "I like both pizza ___ burgers.", "o": ["because", "or", "and"], "a": 2, "e": "And une dos elementos que gustan."}, {"t": "Preposiciones de lugar", "q": "The boy is ___ the curtain. You cannot see him because the curtain hides him.", "o": ["in", "behind", "above"], "a": 1, "e": "Behind significa detrás de."}, {"t": "Adverbios de frecuencia", "q": "He ___ studies at night. He does it every night.", "o": ["usually", "never", "always"], "a": 2, "e": "Always significa siempre."}, {"t": "Adverbios de frecuencia", "q": "Elige la oración correcta según la regla del cuadernillo.", "o": ["She always is happy.", "She is always happy.", "Always she happy is."], "a": 1, "e": "Con el verbo to be, el adverbio de frecuencia va después del verbo."}, {"t": "Pronombres posesivos", "q": "Is this ___ pencil?", "o": ["your", "you", "yours"], "a": 0, "e": "Your se usa antes del sustantivo para indicar posesión."}, {"t": "Pronombres posesivos", "q": "___ school is big.", "o": ["We", "Our", "Us"], "a": 1, "e": "Our significa nuestro/nuestra y va antes del sustantivo."}, {"t": "Presente simple afirmativo", "q": "We ___ from Monday to Friday.", "o": ["works", "working", "work"], "a": 2, "e": "Con we se usa la forma base: work."}, {"t": "Imperativos", "q": "___ talk in class.", "o": ["No", "Don't", "Not"], "a": 1, "e": "El imperativo negativo se forma con don't + verbo base."}, {"t": "Preposiciones de tiempo", "q": "The event is ___ January 1st.", "o": ["in", "at", "on"], "a": 2, "e": "On se usa con fechas exactas."}, {"t": "Adjetivos de forma", "q": "Elige la oración correcta.", "o": ["a circular big sign", "a big circular sign", "a sign big circular"], "a": 1, "e": "En el ejemplo del cuadernillo, el tamaño aparece antes de la forma."}, {"t": "Adjetivos calificativos", "q": "Which word means “valiente”?", "o": ["Brave", "Funny", "Weak"], "a": 0, "e": "Brave significa valiente."}, {"t": "Preguntas simples", "q": "___ is your teacher?", "o": ["Where", "Who", "When"], "a": 1, "e": "Who se usa para preguntar por personas."}, {"t": "Adverbios de frecuencia", "q": "Elige la oración correcta según la regla del cuadernillo.", "o": ["I eat always breakfast.", "I always eat breakfast.", "I eat breakfast always."], "a": 1, "e": "Con el verbo principal, el adverbio de frecuencia va antes del verbo."}, {"t": "Adjetivos de tamaño", "q": "Elige la frase correcta.", "o": ["a red big ball", "a big red ball", "a ball big red"], "a": 1, "e": "El cuadernillo indica que el tamaño suele ir antes del color: a big red ball."}, {"t": "Pronombres posesivos", "q": "This is ___ book.", "o": ["my", "me", "I"], "a": 0, "e": "My indica posesión y va antes del sustantivo."}, {"t": "Adjetivos calificativos", "q": "Elige la oración correcta.", "o": ["They friendly are.", "They are friendly.", "They are friend."], "a": 1, "e": "Con to be, el adjetivo calificativo va después del verbo."}, {"t": "Verb to have", "q": "They ___ a bike.", "o": ["have", "had", "has"], "a": 0, "e": "Con they se usa have."}, {"t": "Presente simple afirmativo", "q": "He ___ TV at night.", "o": ["watching", "watch", "watches"], "a": 2, "e": "Con he, watch cambia a watches."}, {"t": "Conjunciones", "q": "She is cold ___ she has no jacket, so she needs a coat.", "o": ["because", "or", "but"], "a": 0, "e": "Because introduce la causa o razón."}, {"t": "Preguntas simples", "q": "___ do you live?", "o": ["Who", "Where", "What"], "a": 1, "e": "Where se usa para preguntar por un lugar."}, {"t": "Verb to have", "q": "I ___ a computer.", "o": ["have", "do", "has"], "a": 0, "e": "Con I se usa have."}, {"t": "Repaso", "q": "Elige la oración correcta.", "o": ["She has pet but is happy.", "She have a pet and she happy is.", "She has a pet and she is happy."], "a": 2, "e": "La oración combina have/has, adjetivo calificativo y la conjunción and."}, {"t": "Preposiciones de lugar", "q": "The ball is ___ the two shoes. It is in the middle of them.", "o": ["between", "above", "behind"], "a": 0, "e": "Between significa entre dos elementos."}, {"t": "Can / Can't", "q": "___ she draw?", "o": ["Is", "Can", "Does"], "a": 1, "e": "La interrogativa se forma Can + sujeto + verbo base."}, {"t": "Verb to have", "q": "___ she have a computer?", "o": ["Does", "Do", "Is"], "a": 0, "e": "Con she se usa Does, pero el verbo principal queda en have."}, {"t": "Can / Can't", "q": "Elige la oración correcta.", "o": ["She can to draw.", "She can draw.", "She can draws."], "a": 1, "e": "La estructura es sujeto + can + verbo base."}, {"t": "Adjetivos calificativos", "q": "Elige la frase correcta.", "o": ["a happy child", "happy a child", "a child happy"], "a": 0, "e": "También pueden ir antes del sustantivo."}, {"t": "Presente simple negativo", "q": "It doesn't ___ at night.", "o": ["sleeps", "sleep", "sleeping"], "a": 1, "e": "Después de doesn't se usa el verbo base: sleep."}, {"t": "Presente simple interrogativo", "q": "Does he ___ a lot?", "o": ["studying", "studies", "study"], "a": 2, "e": "Después de does, el verbo va en forma base."}, {"t": "Adverbios de frecuencia", "q": "We ___ play soccer. We do it two or three times a week.", "o": ["never", "often", "always"], "a": 1, "e": "Often significa a menudo o frecuentemente."}, {"t": "Can / Can't", "q": "He ___ dance. He knows how to dance.", "o": ["can", "can’t", "does"], "a": 0, "e": "Can va seguido del verbo base y expresa habilidad."}, {"t": "Preposiciones de tiempo", "q": "I sleep ___ midnight.", "o": ["in", "on", "at"], "a": 2, "e": "At se usa con momentos exactos como midnight."}, {"t": "Adjetivos calificativos", "q": "Elige la oración correcta.", "o": ["He is strong.", "He are strong.", "He strong."], "a": 0, "e": "La estructura correcta es sujeto + to be + adjetivo."}, {"t": "Presente simple interrogativo", "q": "___ we work on Fridays?", "o": ["Are", "Does", "Do"], "a": 2, "e": "Con we se usa Do."}, {"t": "Adverbios de frecuencia", "q": "I ___ eat breakfast. I eat it every morning.", "o": ["always", "never", "sometimes"], "a": 0, "e": "Always significa siempre."}, {"t": "Preguntas simples", "q": "___ is your backpack?", "o": ["Who", "When", "Where"], "a": 2, "e": "Where pregunta por la ubicación."}, {"t": "Imperativos", "q": "___ your book to page 10.", "o": ["Open", "Opens", "Opening"], "a": 0, "e": "Open es la forma base del imperativo."}, {"t": "Adjetivos de forma", "q": "Which word means “redondo”?", "o": ["Square", "Flat", "Round"], "a": 2, "e": "Round significa redondo."}, {"t": "Pronombres posesivos", "q": "___ car is blue.", "o": ["He", "His", "Him"], "a": 1, "e": "His significa su/de él y se coloca antes del sustantivo."}, {"t": "Preguntas simples", "q": "___ plays the guitar?", "o": ["Who", "When", "Where"], "a": 0, "e": "Who pregunta por la persona que realiza la acción."}, {"t": "Adjetivos calificativos", "q": "Which word means “feliz”?", "o": ["Sad", "Happy", "Weak"], "a": 1, "e": "Happy significa feliz."}, {"t": "Conjunciones", "q": "She is tired ___ happy at the same time.", "o": ["or", "because", "and"], "a": 2, "e": "And une dos ideas que ocurren al mismo tiempo."}, {"t": "Preposiciones de tiempo", "q": "I was born ___ June.", "o": ["in", "on", "at"], "a": 0, "e": "In se usa con meses."}, {"t": "Imperativos", "q": "___ to the teacher.", "o": ["Listening", "Listen", "Listens"], "a": 1, "e": "Listen to the teacher es una instrucción."}, {"t": "Adjetivos de tamaño", "q": "Elige la palabra correcta: It is a ___ dog.", "o": ["big", "round", "under"], "a": 0, "e": "Big es un adjetivo de tamaño y va antes del sustantivo."}];
+let index=0, correct=0, wrong=0, answered=false;
+
+function render(){
+  answered=false;
+  const q=questions[index];
+  document.getElementById('tag').textContent=q.t;
+  document.getElementById('qnum').textContent='Pregunta '+(index+1)+' de '+questions.length;
+  document.getElementById('current').textContent=(index+1)+'/'+questions.length;
+  document.getElementById('question').textContent=q.q;
+  document.getElementById('bar').style.width=((index)/questions.length*100)+'%';
+  const box=document.getElementById('options');
+  box.innerHTML='';
+  q.o.forEach((opt,i)=>{
+    const b=document.createElement('button');
+    b.className='option';
+    b.textContent=String.fromCharCode(65+i)+') '+opt;
+    b.onclick=()=>answer(i);
+    box.appendChild(b);
+  });
+  const f=document.getElementById('feedback');
+  f.className='feedback'; f.innerHTML='';
+  document.getElementById('next').style.display='none';
+}
+
+function answer(choice){
+  if(answered) return;
+  answered=true;
+  const q=questions[index];
+  const buttons=document.querySelectorAll('.option');
+  buttons.forEach((b,i)=>{b.disabled=true; if(i===q.a)b.classList.add('correct')});
+  const f=document.getElementById('feedback');
+  if(choice===q.a){
+    correct++;
+    f.className='feedback ok';
+    f.innerHTML='<strong>✓ Correcto.</strong> '+q.e;
+  } else {
+    wrong++;
+    buttons[choice].classList.add('incorrect');
+    f.className='feedback no';
+    f.innerHTML='<strong>✗ Incorrecto.</strong> La respuesta correcta es <strong>'+String.fromCharCode(65+q.a)+') '+q.o[q.a]+'</strong>. '+q.e;
+  }
+  document.getElementById('correct').textContent=correct;
+  document.getElementById('wrong').textContent=wrong;
+  document.getElementById('next').style.display='block';
+}
+
+function nextQuestion(){
+  index++;
+  if(index>=questions.length) finish(); else render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function finish(){
+  document.getElementById('quiz').style.display='none';
+  document.getElementById('final').style.display='block';
+  document.getElementById('bar').style.width='100%';
+  const pct=Math.round(correct/questions.length*100);
+  document.getElementById('result').innerHTML='<strong>'+correct+' correctas</strong> y <strong>'+wrong+' incorrectas</strong>.<br>Resultado: <strong>'+pct+'%</strong>';
+}
+
+function restart(){
+  index=0; correct=0; wrong=0;
+  document.getElementById('correct').textContent='0';
+  document.getElementById('wrong').textContent='0';
+  document.getElementById('final').style.display='none';
+  document.getElementById('quiz').style.display='block';
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+render();
+</script>
+</body>
+</html>
